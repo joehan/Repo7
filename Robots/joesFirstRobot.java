@@ -1,4 +1,3 @@
 package Robots;
 
-import battlecode.common.*;
-
+import battlecode.code.*;

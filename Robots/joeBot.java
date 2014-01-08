@@ -32,7 +32,7 @@ public class joeBot{
 						int action = (rc.getRobot().getID()*rand.nextInt(101) + 50)%101;
 						//Construct a PASTR
 						
-						if (action < 2 && rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) > 15) {
+						if (action < 2 && rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) > 20) {
 							MapLocation[] pastures = rc.sensePastrLocations(rc.getTeam());
 							if (pastures.length>0){
 								

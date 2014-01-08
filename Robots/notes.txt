@@ -16,8 +16,6 @@ Additional robot strategies:
 
 1. sprint away from base, sneak into cow area, build pasture and herd cows
 
-2. put herders next to their pastures near HQ, splash damage hits pastures
-
 3. radio tower next to pasture
 
 4. Suiced bombers!!!!!--sneak towards enemy?
@@ -61,6 +59,8 @@ Things to implement;
 4. scouts-mid to late game
 
 5. regular-can be swarm units-- build towers not too close to HQ.
+
+6. see if strategy: run towards enemy hq and kill things around it beats not shooting enemies around hq
 
 
 

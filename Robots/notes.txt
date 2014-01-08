@@ -1,0 +1,66 @@
+Battlecode strategies:
+
+1. Pure Agro
+
+2. Agro w/ 1-2 farms
+
+3. half pastures, half herder
+
+4. all pasture, set up in different places in map
+
+5. 9 pasture, same as above
+
+6. 
+
+Additional robot strategies:
+
+1. sprint away from base, sneak into cow area, build pasture and herd cows
+
+2. put herders next to their pastures near HQ, splash damage hits pastures
+
+3. radio tower next to pasture
+
+4. Suiced bombers!!!!!--sneak towards enemy?
+
+5. pasture next to wall
+
+
+
+5.Differentiate units- scouts, bombers, swarmers 
+
+6. Kill the cows with attack-scorched earth
+
+Tactical Strategies
+
+1. Attack 1 enemy with lots of troops
+
+2. Have army travel in packs
+
+3. Sucide bombers to take out army
+
+4. 2 scouts, groups of 4 or 5
+
+5. all troops
+
+
+Coding strategies:
+
+1. Have HQ handle more calculations?
+
+2. Check map size-- vary stareties based on size
+
+
+Things to implement;
+
+1. shepard AI
+
+2. recluse AI-gets far away and builds farm
+
+3. swarm mechanicsm--zuerg's
+
+4. scouts-mid to late game
+
+5. regular-can be swarm units-- build towers not too close to HQ.
+
+
+

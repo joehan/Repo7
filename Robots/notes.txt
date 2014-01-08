@@ -10,11 +10,14 @@ Battlecode strategies:
 
 5. 9 pasture, same as above
 
-6. 
+6. if milk>5,000 and enemy milk< 5,000, full on attack
+   else if milk <5,000 and enemy milke > 5,000; ?
 
 Additional robot strategies:
 
 1. sprint away from base, sneak into cow area, build pasture and herd cows
+
+2. put herders next to their pastures near HQ, splash damage hits pastures
 
 3. radio tower next to pasture
 
@@ -22,11 +25,10 @@ Additional robot strategies:
 
 5. pasture next to wall
 
-
-
 5.Differentiate units- scouts, bombers, swarmers 
 
 6. Kill the cows with attack-scorched earth
+
 
 Tactical Strategies
 
@@ -36,7 +38,7 @@ Tactical Strategies
 
 3. Sucide bombers to take out army
 
-4. 2 scouts, groups of 4 or 5
+4. 2 scouts, groups of 4 or 5--test optimal number
 
 5. all troops
 
@@ -50,7 +52,7 @@ Coding strategies:
 
 Things to implement;
 
-1. shepard AI
+1. shepard AI- go to tower after a while
 
 2. recluse AI-gets far away and builds farm
 
@@ -61,6 +63,3 @@ Things to implement;
 5. regular-can be swarm units-- build towers not too close to HQ.
 
 6. see if strategy: run towards enemy hq and kill things around it beats not shooting enemies around hq
-
-
-

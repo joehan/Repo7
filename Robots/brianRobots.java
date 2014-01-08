@@ -12,6 +12,7 @@ public class RobotPlayer{
 	public static void run(RobotController rc){
 		while(true){
 			if (rc.getType()==RobotType.HQ){
+				rc.
 				Direction spawnDir = Direction.NORTH;
 				if(rc.isActive()&&rc.canMove(spawnDir)&&rc.senseRobotCount()<GameConstants.MAX_ROBOTS){
 					try {
@@ -32,6 +33,7 @@ public class RobotPlayer{
 					} catch (GameActionException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+						
 					}
 				}
 			}

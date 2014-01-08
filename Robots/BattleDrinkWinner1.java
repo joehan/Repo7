@@ -1,4 +1,4 @@
-package Team121;
+package Joe;
 
 import java.util.Random;
 
@@ -34,17 +34,18 @@ public class RobotPlayer{
 	
 	public static void runHQ(RobotController rc) throws GameActionException{
 		//Check if a robot is spawnable and spawn one if it is
-		if (rc.isActive()){
-			Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
-			if (nearbyEnemies.length > 0) {
+		Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
+		if (rc.isActive() && nearbyEnemies.length > 0){
+			
+			
 				RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[0]);
 				rc.attackSquare(robotInfo.location);
-			}
+			
 		}
 		else if (rc.isActive() && rc.senseRobotCount() < 25) {
-			Direction toEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
-			if (rc.senseObjectAtLocation(rc.getLocation().add(toEnemy)) == null) {
-				rc.spawn(toEnemy);
+			Direction moveDirection = directions[rand.nextInt(8)];
+			if (rc.canMove(moveDirection)) {
+				rc.spawn(moveDirection);
 			}
 		}
 	}
@@ -56,8 +57,8 @@ public class RobotPlayer{
 			int action = (rc.getRobot().getID()*rand.nextInt(101) + 50)%101;
 			MapLocation[] pastures = rc.sensePastrLocations(rc.getTeam());
 			
-			//Construct a PASTR
-			if (action < 2 && rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) > 20) {
+			//Construct a PASTR/ and towers
+			if (action < 2 && rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) > 8) {
 				double[][] cowGrowthArrays = rc.senseCowGrowth();
 				double cowGrowth = cowGrowthArrays[xLoc][yLoc];
 				
@@ -69,26 +70,29 @@ public class RobotPlayer{
 							nearestPasture = i;
 						}
 					}
-					if (current.distanceSquaredTo(nearestPasture) < 9){
-						rc.construct(RobotType.NOISETOWER);
-					}
-					else if (cowGrowth>1){
-						rc.construct(RobotType.PASTR);
+					Robot[] nearbyThings = rc.senseNearbyGameObjects(Robot.class, 9, rc.getTeam());
+					if (nearbyThings.length<3){
+						if (current.distanceSquaredTo(nearestPasture) < 9){
+							rc.construct(RobotType.NOISETOWER);
+						}
+						else if (cowGrowth>1){
+							rc.construct(RobotType.PASTR);
+						}
 					}
 				}
 				else if (cowGrowth>1){
 					rc.construct(RobotType.PASTR);
 				}
 			//Basic Herding behavior
-			}else if (action < 10){
-				if (pastures.length>0){
+			}else if (action < 10 && pastures.length >0){
+				
 					MapLocation nearestPasture = pastures[0];
 					MapLocation current = rc.getLocation();
 					for (MapLocation i: rc.sensePastrLocations(rc.getTeam())){
 						if (current.distanceSquaredTo(i) < current.distanceSquaredTo(nearestPasture)){
 							nearestPasture = i;
 						}
-					}
+					
 					Direction herdDirection = rc.getLocation().directionTo(nearestPasture);
 					if (rc.canMove(herdDirection)){
 						rc.move(herdDirection);

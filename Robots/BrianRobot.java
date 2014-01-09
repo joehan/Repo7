@@ -1,4 +1,4 @@
-package Joe;
+package team121;
 
 import java.util.Random;
 
@@ -52,13 +52,33 @@ public class RobotPlayer{
 	
 	public static void runSoldier(RobotController rc) throws GameActionException{
 		if (rc.isActive()) {
+			
 			int xLoc = rc.getLocation().x;
 			int yLoc = rc.getLocation().y;
 			int action = (rc.getRobot().getID()*rand.nextInt(101) + 50)%101;
 			MapLocation[] pastures = rc.sensePastrLocations(rc.getTeam());
 			
+			//Attack a random nearby enemy
+			if (action < 20) {
+				Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
+				if (nearbyEnemies.length > 0) {
+					for (int i=0; i==nearbyEnemies.length-1; i++){
+						RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[i]);
+						if (rc.canAttackSquare(robotInfo.location) && robotInfo.type==RobotType.PASTR){
+							rc.attackSquare(robotInfo.location);
+						}
+						else if(rc.canAttackSquare(robotInfo.location) && robotInfo.type==RobotType.NOISETOWER){
+							rc.attackSquare(robotInfo.location);
+						}
+						else if(rc.canAttackSquare(robotInfo.location) && robotInfo.type==RobotType.SOLDIER){
+							rc.attackSquare(robotInfo.location);
+						}
+					}
+				}
+			}
+			
 			//Construct a PASTR/ and towers
-			if (action < 2 && rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) > 8) {
+				else if (action < 23 && rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) > 8) {
 				double[][] cowGrowthArrays = rc.senseCowGrowth();
 				double cowGrowth = cowGrowthArrays[xLoc][yLoc];
 				
@@ -71,11 +91,11 @@ public class RobotPlayer{
 						}
 					}
 					Robot[] nearbyThings = rc.senseNearbyGameObjects(Robot.class, 9, rc.getTeam());
-					if (nearbyThings.length<3){
-						if (current.distanceSquaredTo(nearestPasture) < 9){
+					if (nearbyThings.length<2){
+						if (current.distanceSquaredTo(nearestPasture) < 5){
 							rc.construct(RobotType.NOISETOWER);
 						}
-						else if (cowGrowth>1){
+						else if (cowGrowth>1 && rc.senseEnemyHQLocation().distanceSquaredTo(rc.getLocation())>rc.senseHQLocation().distanceSquaredTo(rc.getLocation())){
 							rc.construct(RobotType.PASTR);
 						}
 					}
@@ -84,7 +104,7 @@ public class RobotPlayer{
 					rc.construct(RobotType.PASTR);
 				}
 			//Basic Herding behavior
-			}else if (action < 10 && pastures.length >0){
+			}else if (action < 30 && pastures.length >0){
 				
 					MapLocation nearestPasture = pastures[0];
 					MapLocation current = rc.getLocation();
@@ -99,17 +119,23 @@ public class RobotPlayer{
 					}
 				}
 			//Attack a random nearby enemy
-			} else if (action < 20) {
-				Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
-				if (nearbyEnemies.length > 0) {
-					RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[0]);
-					rc.attackSquare(robotInfo.location);
-				}
-			//Move in a random direction
+			
+			//Swarm movement?
 			} else {
 				Direction moveDirection = directions[rand.nextInt(8)];
-				if (rc.canMove(moveDirection)) {
+				MapLocation[] pastrLocations = rc.sensePastrLocations(rc.getTeam().opponent());
+				if (pastrLocations.length>0 && pastrLocations[0].distanceSquaredTo(rc.getLocation())>=10){
+					Direction dir = rc.getLocation().directionTo(pastrLocations[0]);
+					if (rc.canMove(dir)){
+						rc.move(dir);
+					}
+					else if(rc.canMove(moveDirection)) {
+						rc.move(moveDirection);
+					}									
+				}	
+				else if (rc.canMove(moveDirection)) {
 					rc.move(moveDirection);
+					
 				}
 			}
 		}

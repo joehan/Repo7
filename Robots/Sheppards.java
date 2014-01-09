@@ -225,4 +225,33 @@ import battlecode.common.RobotType;
 		    return m.get(j);
 		}
 	}
+
 	
+	
+	
+	//Attack a nearby enemy.  Attack order is PASTR then tower then robots
+} else if (action < 20) {
+	Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
+	if (nearbyEnemies.length > 0) {
+		for (int i = -1;i== nearbyEnemies.length; i++){
+			RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[i]);
+			if (robotInfo.type==RobotType.PASTR){
+				rc.attackSquare(robotInfo.location);
+			}
+			else if (robotInfo.type==RobotType.NOISETOWER){
+				rc.attackSquare(robotInfo.location);
+			}
+			else if (robotInfo.type==RobotType.SOLDIER){
+				rc.attackSquare(robotInfo.location);
+			}
+		}
+	}
+	else {
+		Direction moveDirection = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
+		if (rc.canMove(moveDirection)) {
+			rc.move(moveDirection);
+		}
+		else{
+			movePerpindicular(rc.senseEnemyHQLocation(), rc);
+		}
+	}

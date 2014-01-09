@@ -1,4 +1,4 @@
-package Team121;
+package Bombers;
 
 import java.util.Random;
 
@@ -34,12 +34,13 @@ public class RobotPlayer{
 	
 	public static void runHQ(RobotController rc) throws GameActionException{
 		//Check if a robot is spawnable and spawn one if it is
-		if (rc.isActive()){
-			Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
-			if (nearbyEnemies.length > 0) {
+		Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
+		if (rc.isActive() && nearbyEnemies.length >0){
+			
+			
 				RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[0]);
 				rc.attackSquare(robotInfo.location);
-			}
+			
 		}
 		else if (rc.isActive() && rc.senseRobotCount() < 25) {
 			Direction toEnemy = rc.getLocation().directionTo(rc.senseEnemyHQLocation());
@@ -51,6 +52,7 @@ public class RobotPlayer{
 	
 	public static void runSoldier(RobotController rc) throws GameActionException{
 		if (rc.isActive()) {
+			
 			int xLoc = rc.getLocation().x;
 			int yLoc = rc.getLocation().y;
 			int action = (rc.getRobot().getID()*rand.nextInt(101) + 50)%101;
@@ -80,7 +82,7 @@ public class RobotPlayer{
 					rc.construct(RobotType.PASTR);
 				}
 			//Basic Herding behavior
-			a random nearby enemy
+			
 			} else if (action < 20) {
 				Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
 				if (nearbyEnemies.length > 0) {
@@ -89,17 +91,25 @@ public class RobotPlayer{
 				}
 			//Move in a random direction
 			} else {
-				Direction moveDirection = rc.getLocation().directionTo(rc.senseEnemyHQLocation());;
+				Direction moveDirection = directions[rand.nextInt(7)];
 				Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
 				Robot nearestEnemy;
+				int distAway = 1000000;
 				if (nearbyEnemies.length > 0) {
-					nearestEnemy = nearbyEnemies[0]
+					nearestEnemy = nearbyEnemies[0];
+					
 					for (Robot i: nearbyEnemies){
-						if (rc.getLocation().)
+						if (rc.getLocation().distanceSquaredTo(rc.senseRobotInfo(i).location) < rc.getLocation().distanceSquaredTo(rc.senseRobotInfo(nearestEnemy).location)){
+							nearestEnemy = i;
+							distAway = rc.getLocation().distanceSquaredTo(rc.senseRobotInfo(i).location);
+						}
+					}
+					if (distAway < 3){
+						rc.selfDestruct();
 					}
 				}
 
-				if ()
+				
 				if (rc.canMove(moveDirection)) {
 					rc.move(moveDirection);
 				}

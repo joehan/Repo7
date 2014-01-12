@@ -35,9 +35,9 @@ public class RobotPlayer{
 			path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(goal,bigBoxSize), 100000);
 			//VectorFunctions.printPath(path,bigBoxSize);
 		}else{
-			MapLocation goal = VectorFunctions.getNewPastrLoc(rc, 100, 25);
-			BreadthFirst.init(rc, bigBoxSize);
-			path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(goal,bigBoxSize), 100000);
+			//MapLocation goal = VectorFunctions.getNewPastrLoc(rc, 100, 25);
+			//BreadthFirst.init(rc, bigBoxSize);
+			//path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(goal,bigBoxSize), 100000);
 		}
 		
 		
@@ -53,7 +53,7 @@ public class RobotPlayer{
 				
 				if(rc.getType()==RobotType.HQ){
 					runHQ();
-				}else if(rc.getType()==RobotType.SOLDIER && ((rc.getRobot().getID())%10) !=0){
+				}else if(rc.getType()==RobotType.SOLDIER && ((rc.getRobot().getID())%farmerFreqMod) !=0){
 					rc.setIndicatorString(0, "Soldier");
 					runSoldier();
 				}else{
@@ -85,12 +85,25 @@ public class RobotPlayer{
 	}
 	
 	private static void runFarmer() throws GameActionException {
-		if(path.size()==0){
-			rc.construct(RobotType.PASTR);
+		if ((randall.nextInt(10)%9) == 0){
+			
+			double val = Farming.evaluateSpace(rc);
+			if (val>10000. && Farming.farEnoughFromOtherPastrs(rc, rc.getLocation())){
+				rc.construct(RobotType.PASTR);
+			}
+			
+			
 		}
-		//follow breadthFirst path
-		Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
-		BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
+		else{
+			Direction dir = rc.getLocation().directionTo(getRandomLocation());
+			BasicPathing.tryToMove(dir, true, rc, directionalLooks, allDirections);
+		}
+//		if(path.size()==0){
+//			rc.construct(RobotType.PASTR);
+//		}
+//		//follow breadthFirst path
+//		Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
+//		BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
 		
 	}
 	

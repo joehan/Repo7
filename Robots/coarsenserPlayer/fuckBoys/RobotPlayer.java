@@ -24,16 +24,16 @@ public class RobotPlayer{
 		if(rc.getType()==RobotType.HQ){
 			tryToSpawn();
 		}else if(rc.getType()==RobotType.SOLDIER && ((rc.getRobot().getID())%farmerFreqMod) !=0){
-			BreadthFirst.init(rc, bigBoxSize);
-			MapLocation[] oppPastrs= rc.sensePastrLocations(rc.getTeam().opponent());
-			MapLocation goal;
-			if (oppPastrs.length>0){
-				goal = oppPastrs[randall.nextInt(oppPastrs.length)];
-			}else{
-				goal = VectorFunctions.getNewPastrLoc(rc, 25, 0);
-			}
-			path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(goal,bigBoxSize), 100000);
-			//VectorFunctions.printPath(path,bigBoxSize);
+//			BreadthFirst.init(rc, bigBoxSize);
+//			MapLocation[] oppPastrs= rc.sensePastrLocations(rc.getTeam().opponent());
+//			MapLocation goal;
+//			if (oppPastrs.length>0){
+//				goal = oppPastrs[randall.nextInt(oppPastrs.length)];
+//			}else{
+//				goal = VectorFunctions.getNewPastrLoc(rc, 25, 0);
+//			}
+//			path = BreadthFirst.pathTo(VectorFunctions.mldivide(rc.getLocation(),bigBoxSize), VectorFunctions.mldivide(goal,bigBoxSize), 100000);
+//			//VectorFunctions.printPath(path,bigBoxSize);
 		}else{
 			//MapLocation goal = VectorFunctions.getNewPastrLoc(rc, 100, 25);
 			//BreadthFirst.init(rc, bigBoxSize);
@@ -55,7 +55,10 @@ public class RobotPlayer{
 					runHQ();
 				}else if(rc.getType()==RobotType.SOLDIER && ((rc.getRobot().getID())%farmerFreqMod) !=0){
 					rc.setIndicatorString(0, "Soldier");
-					runSoldier();
+					//runSoldier();
+					rc.setIndicatorString(0,"shepard");
+					runShepard();
+					
 				}else{
 					rc.setIndicatorString(0,"farmer");
 					runFarmer();
@@ -95,6 +98,7 @@ public class RobotPlayer{
 			
 		}
 		else{
+			
 			Direction dir = rc.getLocation().directionTo(getRandomLocation());
 			BasicPathing.tryToMove(dir, true, rc, directionalLooks, allDirections);
 		}
@@ -105,6 +109,39 @@ public class RobotPlayer{
 //		Direction bdir = BreadthFirst.getNextDirection(path, bigBoxSize);
 //		BasicPathing.tryToMove(bdir, true, rc, directionalLooks, allDirections);
 		
+	}
+	
+	private static void runShepard() throws GameActionException{
+		Robot[] enemyRobots = rc.senseNearbyGameObjects(Robot.class,10000,rc.getTeam().opponent());
+		MapLocation closestEnemyLocation = new MapLocation(100000,1000000);
+		int distanceToClosestEnemy = 1000000;
+		RobotType type = RobotType.HQ;
+		for (Robot i:enemyRobots){
+			RobotInfo info = rc.senseRobotInfo(i);
+			int enemyDist = info.location.distanceSquaredTo(rc.getLocation());
+			if (enemyDist<distanceToClosestEnemy ){
+				distanceToClosestEnemy  = enemyDist;
+				closestEnemyLocation = info.location;
+				type = info.type;
+			}
+		}
+		
+		if(distanceToClosestEnemy < rc.getType().attackRadiusMaxSquared && type != RobotType.HQ){//if there are enemies
+			rc.attackSquare(closestEnemyLocation);
+		}else{
+			MapLocation[] myPastrs = rc.sensePastrLocations(rc.getTeam());
+		
+			if (myPastrs.length == 0){
+				//Move randomly
+				Direction dir = rc.getLocation().directionTo(getRandomLocation());
+				BasicPathing.tryToMove(dir, true, rc, directionalLooks, allDirections);
+			}
+			else{
+				MapLocation randomPastr = myPastrs[randall.nextInt(myPastrs.length)];
+				Direction dir = rc.getLocation().directionTo(randomPastr);
+				BasicPathing.tryToMove(dir, true, rc, directionalLooks, allDirections);
+			}
+		}
 	}
 	
 	private static void runSoldier() throws GameActionException {

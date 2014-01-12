@@ -1,14 +1,23 @@
-package team121;
+package Messing;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+
 
 import battlecode.common.*;
 
-public class RobotPlayer{
+public class RobotPlayer {
+	// intitialize some global variables here
+	
 	static Random rand;
 	static Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST, Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
+	static List<MapLocation> previousStates = new ArrayList<MapLocation>();
+	
 	public static void run(RobotController rc){
 		rand = new Random();
+		String type = "";
+		List<MapLocation> previousStates = new ArrayList<MapLocation>();
 		
 		
 		while(true) {
@@ -33,111 +42,119 @@ public class RobotPlayer{
 	}
 	
 	public static void runHQ(RobotController rc) throws GameActionException{
-		//Check if a robot is spawnable and spawn one if it is
-		Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
-		if (rc.isActive() && nearbyEnemies.length > 0){
-			
-			
-				RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[0]);
-				rc.attackSquare(robotInfo.location);
-			
-		}
-		else if (rc.isActive() && rc.senseRobotCount() < 25) {
-			Direction moveDirection = directions[rand.nextInt(8)];
-			if (rc.canMove(moveDirection)) {
-				rc.spawn(moveDirection);
+		//kill enemies if they are around the base
+		Robot[] enemies = rc.senseNearbyGameObjects(Robot.class, 20, rc.getTeam().opponent());
+		if (enemies.length>0 && rc.isActive()){	
+			for(int i=0;i==enemies.length;i++){
+				MapLocation enemySquare = rc.senseRobotInfo(enemies[i]).location;
+				if (rc.canAttackSquare(enemySquare)){
+					rc.attackSquare(enemySquare);				
+				}
 			}
 		}
+		
+		//spawn a soldier
+		Direction toEnemy = rc.senseEnemyHQLocation().directionTo(rc.getLocation());
+		if(rc.isActive() && rc.canMove(toEnemy)){
+			rc.spawn(toEnemy);
+		}
+		
+		//Do some computation here
+		
 	}
 	
 	public static void runSoldier(RobotController rc) throws GameActionException{
-		if (rc.isActive()) {
-			
-			int xLoc = rc.getLocation().x;
-			int yLoc = rc.getLocation().y;
-			int action = (rc.getRobot().getID()*rand.nextInt(101) + 50)%101;
-			MapLocation[] pastures = rc.sensePastrLocations(rc.getTeam());
-			
-			//Attack a random nearby enemy
-			if (action < 20) {
-				Robot[] nearbyEnemies = rc.senseNearbyGameObjects(Robot.class,10,rc.getTeam().opponent());
-				if (nearbyEnemies.length > 0) {
-					for (int i=0; i==nearbyEnemies.length-1; i++){
-						RobotInfo robotInfo = rc.senseRobotInfo(nearbyEnemies[i]);
-						if (rc.canAttackSquare(robotInfo.location) && robotInfo.type==RobotType.PASTR){
-							rc.attackSquare(robotInfo.location);
-						}
-						else if(rc.canAttackSquare(robotInfo.location) && robotInfo.type==RobotType.NOISETOWER){
-							rc.attackSquare(robotInfo.location);
-						}
-						else if(rc.canAttackSquare(robotInfo.location) && robotInfo.type==RobotType.SOLDIER){
-							rc.attackSquare(robotInfo.location);
-						}
-					}
+		//Combat first
+		ArrayList<RobotInfo> enemyInfoList = new ArrayList<RobotInfo>(); //make an array for enemy info
+		Robot[] enemies = rc.senseNearbyGameObjects(Robot.class, 35 , rc.getTeam().opponent());
+		if (rc.isActive() && enemies.length>0){ 	//eventually add another catch--see if HQ wants it to attack
+			for(int i=0;i<enemies.length;i++){		//Pastr loop
+				enemyInfoList.add(rc.senseRobotInfo(enemies[i]));	//add to array storing enemy info
+				if(enemyInfoList.get(i).type == RobotType.PASTR && rc.canAttackSquare(enemyInfoList.get(i).location)){ 
+					rc.attackSquare(enemyInfoList.get(i).location);				
 				}
 			}
-			
-			//Construct a PASTR/ and towers
-				else if (action < 23 && rc.getLocation().distanceSquaredTo(rc.senseHQLocation()) > 8) {
-				double[][] cowGrowthArrays = rc.senseCowGrowth();
-				double cowGrowth = cowGrowthArrays[xLoc][yLoc];
-				
-				if (pastures.length>0){
-					MapLocation nearestPasture = pastures[0];
-					MapLocation current = rc.getLocation();
-					for (MapLocation i: rc.sensePastrLocations(rc.getTeam())){
-						if (current.distanceSquaredTo(i) < current.distanceSquaredTo(nearestPasture)){
-							nearestPasture = i;
-						}
-					}
-					Robot[] nearbyThings = rc.senseNearbyGameObjects(Robot.class, 9, rc.getTeam());
-					if (nearbyThings.length<2){
-						if (current.distanceSquaredTo(nearestPasture) < 5){
-							rc.construct(RobotType.NOISETOWER);
-						}
-						else if (cowGrowth>1 && rc.senseEnemyHQLocation().distanceSquaredTo(rc.getLocation())>rc.senseHQLocation().distanceSquaredTo(rc.getLocation())){
-							rc.construct(RobotType.PASTR);
-						}
-					}
+			for (int i=0; i<enemies.length; i++){	//Soldier Loop
+				if(enemyInfoList.get(i).type == RobotType.SOLDIER && rc.canAttackSquare(enemyInfoList.get(i).location)){ 
+					rc.attackSquare(enemyInfoList.get(i).location);	
 				}
-				else if (cowGrowth>1){
-					rc.construct(RobotType.PASTR);
-				}
-			//Basic Herding behavior
-			}else if (action < 30 && pastures.length >0){
-				
-					MapLocation nearestPasture = pastures[0];
-					MapLocation current = rc.getLocation();
-					for (MapLocation i: rc.sensePastrLocations(rc.getTeam())){
-						if (current.distanceSquaredTo(i) < current.distanceSquaredTo(nearestPasture)){
-							nearestPasture = i;
-						}
-					
-					Direction herdDirection = rc.getLocation().directionTo(nearestPasture);
-					if (rc.canMove(herdDirection)){
-						rc.move(herdDirection);
-					}
-				}
-			//Attack a random nearby enemy
-			
-			//Swarm movement?
-			} else {
-				Direction moveDirection = directions[rand.nextInt(8)];
-				MapLocation[] pastrLocations = rc.sensePastrLocations(rc.getTeam().opponent());
-				if (pastrLocations.length>0 && pastrLocations[0].distanceSquaredTo(rc.getLocation())>=10){
-					Direction dir = rc.getLocation().directionTo(pastrLocations[0]);
-					if (rc.canMove(dir)){
-						rc.move(dir);
-					}
-					else if(rc.canMove(moveDirection)) {
-						rc.move(moveDirection);
-					}									
-				}	
-				else if (rc.canMove(moveDirection)) {
-					rc.move(moveDirection);
-					
+			}
+			for (int i=0; i<enemies.length; i++){ //NoiseTower Loop
+				if(enemyInfoList.get(i).type == RobotType.NOISETOWER && rc.canAttackSquare(enemyInfoList.get(i).location)){ 
+					rc.attackSquare(enemyInfoList.get(i).location);	
 				}
 			}
 		}
-	}		
+		
+		
+		//now movement
+		
+		
+		
+		if (rc.isActive() ){
+			boolean isMoving = false;
+			MapLocation[] enemyPastrLocation = rc.sensePastrLocations(rc.getTeam().opponent());
+			if (enemyPastrLocation.length>0){	//move to enemy pastr's--aggro
+				int lowestDistance = 10000;
+				int pastrNumber = 0;
+				for(int i=0; i<enemyPastrLocation.length; i++){
+					lowestDistance = Math.min(lowestDistance, enemyPastrLocation[i].distanceSquaredTo(rc.getLocation()));
+					if (lowestDistance==enemyPastrLocation[i].distanceSquaredTo(rc.getLocation())){
+						pastrNumber = i;
+					}					
+				}
+				Direction dirToPastr = rc.getLocation().directionTo(enemyPastrLocation[pastrNumber]);
+				if (rc.getLocation().distanceSquaredTo(rc.senseEnemyHQLocation())>15){
+					moveCloseTo(rc, dirToPastr);
+				}
+				isMoving = true;
+			}
+			else if (rc.getLocation().distanceSquaredTo(rc.senseHQLocation())<(rc.getMapHeight()^2)*4 && !isMoving){
+				moveRandom(rc);
+			}
+		}
+		
+		//end of turn communication
+		
+		if (previousStates.size()>3){
+			previousStates.remove(0);
+		}
+		if (!previousStates.contains(rc.getLocation())){
+			previousStates.add(rc.getLocation());
+		}	
+	}
+	public static void moveRandom(RobotController rc) throws GameActionException{
+		Direction moveDirection = directions[rand.nextInt(8)];
+		rc.move(moveDirection);		
+	}
+	public static MapLocation positionAfterMove(RobotController rc, Direction dir){
+		MapLocation position = rc.getLocation();
+		return position.add(dir);
+	}
+	public static boolean moveAllowed(RobotController rc, Direction dir){
+		return (rc.canMove(dir) && !previousStates.contains(positionAfterMove(rc,dir)));
+	}
+	public static void moveCloseTo(RobotController rc, Direction dir) throws GameActionException{
+		if (moveAllowed(rc,dir)){
+			rc.move(dir);
+		}
+		else if (moveAllowed(rc,dir.rotateLeft())){
+			rc.move(dir.rotateLeft());
+		}
+		else if (moveAllowed(rc,dir.rotateRight())){
+			rc.move(dir.rotateRight());
+		}
+		else if (moveAllowed(rc,dir.rotateLeft().rotateLeft())){
+			rc.move(dir.rotateLeft().rotateLeft());
+		}
+		else if (moveAllowed(rc,dir.rotateRight().rotateRight())){
+			rc.move(dir.rotateRight().rotateRight());
+		}
+		else if (moveAllowed(rc,dir.rotateLeft().rotateLeft().rotateLeft())){
+			rc.move(dir.rotateLeft().rotateLeft().rotateLeft());
+		}
+		else if (moveAllowed(rc,dir.rotateRight().rotateRight().rotateRight())){
+			rc.move(dir.rotateRight().rotateRight().rotateRight());
+		}
+	}	
 }

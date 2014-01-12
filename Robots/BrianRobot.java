@@ -5,19 +5,20 @@ import java.util.List;
 import java.util.Random;
 
 
+import battlecode.client.viewer.GameState;
 import battlecode.common.*;
+import battlecode.world.GameMap;
 
 public class RobotPlayer {
 	// intitialize some global variables here
-	
+	static int distTo=0;
+	static boolean stuck=false;
 	static Random rand;
 	static Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST, Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
 	static List<MapLocation> previousStates = new ArrayList<MapLocation>();
 	
 	public static void run(RobotController rc){
 		rand = new Random();
-		String type = "";
-		List<MapLocation> previousStates = new ArrayList<MapLocation>();
 		
 		
 		while(true) {
@@ -89,8 +90,6 @@ public class RobotPlayer {
 		
 		//now movement
 		
-		
-		
 		if (rc.isActive() ){
 			boolean isMoving = false;
 			MapLocation[] enemyPastrLocation = rc.sensePastrLocations(rc.getTeam().opponent());
@@ -101,16 +100,23 @@ public class RobotPlayer {
 					lowestDistance = Math.min(lowestDistance, enemyPastrLocation[i].distanceSquaredTo(rc.getLocation()));
 					if (lowestDistance==enemyPastrLocation[i].distanceSquaredTo(rc.getLocation())){
 						pastrNumber = i;
-					}					
+					}
 				}
 				Direction dirToPastr = rc.getLocation().directionTo(enemyPastrLocation[pastrNumber]);
-				if (rc.getLocation().distanceSquaredTo(rc.senseEnemyHQLocation())>15){
-					moveCloseTo(rc, dirToPastr);
+				if (Clock.getRoundNum()%10 ==0 || Clock.getRoundNum()%10==1 && !stuck){
+					checkStuck(rc, enemyPastrLocation[pastrNumber]);
 				}
-				isMoving = true;
+				if (rc.getLocation().distanceSquaredTo(rc.senseEnemyHQLocation())<16){
+					moveCloseTo(rc, rc.getLocation().directionTo(rc.senseEnemyHQLocation()));
+				}
+				if (rc.getLocation().distanceSquaredTo(rc.senseEnemyHQLocation())>16){
+					moveCloseTo(rc, dirToPastr);
+					isMoving = true;
+				}	
 			}
 			else if (rc.getLocation().distanceSquaredTo(rc.senseHQLocation())<(rc.getMapHeight()^2)*4 && !isMoving){
 				moveRandom(rc);
+				
 			}
 		}
 		
@@ -135,26 +141,59 @@ public class RobotPlayer {
 		return (rc.canMove(dir) && !previousStates.contains(positionAfterMove(rc,dir)));
 	}
 	public static void moveCloseTo(RobotController rc, Direction dir) throws GameActionException{
+		if (!stuck){	
+			if (moveAllowed(rc,dir)){
+				rc.move(dir);
+			}
+			else if (moveAllowed(rc,dir.rotateLeft())){
+				rc.move(dir.rotateLeft());
+			}
+			else if (moveAllowed(rc,dir.rotateRight())){
+				rc.move(dir.rotateRight());
+			}
+			else if (moveAllowed(rc,dir.rotateLeft().rotateLeft())){
+				rc.move(dir.rotateLeft().rotateLeft());
+			}
+			else if (moveAllowed(rc,dir.rotateRight().rotateRight())){
+				rc.move(dir.rotateRight().rotateRight());
+			}
+			else if (moveAllowed(rc,dir.rotateLeft().rotateLeft().rotateLeft())){
+				rc.move(dir.rotateLeft().rotateLeft().rotateLeft());
+			}
+			else if (moveAllowed(rc,dir.rotateRight().rotateRight().rotateRight())){
+				rc.move(dir.rotateRight().rotateRight().rotateRight());
+			}
+		}
+		else{
+			moveAround(rc, dir);
+		}
+	}	
+	
+	public static void moveAround(RobotController rc, Direction dir) throws GameActionException{
+		//readjust stuck variable if not stuck
+		if (moveAllowed(rc, dir)){
+			stuck = false;
+		}
+		//Hug the right wall
 		if (moveAllowed(rc,dir)){
 			rc.move(dir);
 		}
 		else if (moveAllowed(rc,dir.rotateLeft())){
 			rc.move(dir.rotateLeft());
 		}
-		else if (moveAllowed(rc,dir.rotateRight())){
-			rc.move(dir.rotateRight());
-		}
 		else if (moveAllowed(rc,dir.rotateLeft().rotateLeft())){
 			rc.move(dir.rotateLeft().rotateLeft());
-		}
-		else if (moveAllowed(rc,dir.rotateRight().rotateRight())){
-			rc.move(dir.rotateRight().rotateRight());
 		}
 		else if (moveAllowed(rc,dir.rotateLeft().rotateLeft().rotateLeft())){
 			rc.move(dir.rotateLeft().rotateLeft().rotateLeft());
 		}
-		else if (moveAllowed(rc,dir.rotateRight().rotateRight().rotateRight())){
-			rc.move(dir.rotateRight().rotateRight().rotateRight());
+		else if (moveAllowed(rc,dir.rotateLeft().rotateLeft().rotateLeft().rotateLeft())){
+			rc.move(dir.rotateLeft().rotateLeft().rotateLeft().rotateLeft());
 		}
-	}	
+	}
+	public static void checkStuck(RobotController rc, MapLocation location){
+		if (rc.getLocation().distanceSquaredTo(location)>= distTo){
+			stuck = true;
+		}
+	}
 }
